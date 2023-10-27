@@ -59,7 +59,7 @@ const bdInfo = {
   password: process.env.PDEV_DBPASSWORD,
   port: process.env.PDEV_DBPORT,
   // database: process.env.PDEV_DBNAME,
-  database: 'db_distribuidora_panaderia',
+  database: 'db_taller_don_guillermo',
   dateStrings: true,
   multipleStatements: true,
   ssl: {
