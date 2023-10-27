@@ -92,7 +92,7 @@ controller.add = (controllerRequest, controllerResponse) => {
         ],
         (queryError, queryRows) => {
           if (queryError)
-            connection.rollback(() => { 
+            return connection.rollback(() => { 
               controllerResponse.status(500).json(errorResponses.status500(queryError));
             });
 
@@ -100,7 +100,7 @@ controller.add = (controllerRequest, controllerResponse) => {
 
           connection.commit((commitError) => {
             if (commitError) {
-              connection.rollback(() => {
+              return connection.rollback(() => {
                 controllerResponse.status(500).json(errorResponses.status500(commitError));
               });
             }

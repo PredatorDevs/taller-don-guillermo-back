@@ -129,7 +129,7 @@ controller.addv2 = (controllerRequest, controllerResponse) => {
         [ locationId, docDatetime, docNumber, idtoauth ],
         (queryError, queryRows) => {
           if (queryError)
-            connection.rollback(() => { 
+            return connection.rollback(() => { 
               controllerResponse.status(500).json(errorResponses.status500(queryError));
             });
   
@@ -152,7 +152,7 @@ controller.addv2 = (controllerRequest, controllerResponse) => {
                 [ newName, fileExt, fileKey, fileUrl ],
                 (queryError, queryRows) => {
                   if (queryError)
-                    connection.rollback(() => {
+                    return connection.rollback(() => {
                       controllerResponse.status(500).json(errorResponses.status500(queryError));
                     });
   
@@ -163,7 +163,7 @@ controller.addv2 = (controllerRequest, controllerResponse) => {
                     [ productionInsertedId, attachmentInsertedId ],
                     (queryError, queryRows) => {
                       if (queryError)
-                        connection.rollback(() => {
+                        return connection.rollback(() => {
                           controllerResponse.status(500).json(errorResponses.status500(queryError));
                         });
                       
@@ -176,13 +176,13 @@ controller.addv2 = (controllerRequest, controllerResponse) => {
                         [ bulkTransformedData ],
                         (queryError, queryRows) => {
                           if (queryError)
-                            connection.rollback(() => { 
+                            return connection.rollback(() => { 
                               controllerResponse.status(500).json(errorResponses.status500(queryError));
                             });
 
                           connection.commit((commitError) => {
                             if (commitError) {
-                              connection.rollback(() => {
+                              return connection.rollback(() => {
                                 controllerResponse.status(500).json(errorResponses.status500(commitError));
                               });
                             }
@@ -196,7 +196,7 @@ controller.addv2 = (controllerRequest, controllerResponse) => {
                 }
               );
             }).catch((uploadError) => {
-              connection.rollback(() => {
+              return connection.rollback(() => {
                 controllerResponse.status(500).json(errorResponses.status500(uploadError));
               });
             });
@@ -209,12 +209,12 @@ controller.addv2 = (controllerRequest, controllerResponse) => {
               [ bulkTransformedData ],
               (queryError, queryRows) => {
                 if (queryError)
-                  connection.rollback(() => { 
+                  return connection.rollback(() => { 
                     controllerResponse.status(500).json(errorResponses.status500(queryError));
                   });
                 connection.commit((commitError) => {
                   if (commitError) {
-                    connection.rollback(() => {
+                    return connection.rollback(() => {
                       controllerResponse.status(500).json(errorResponses.status500(commitError));
                     });
                   }

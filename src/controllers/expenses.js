@@ -132,7 +132,7 @@ controller.addv2 = (controllerRequest, controllerResponse) => {
         ],
         (queryError, queryRows) => {
           if (queryError)
-            connection.rollback(() => { 
+            return connection.rollback(() => { 
               controllerResponse.status(500).json(errorResponses.status500(queryError));
             });
 
@@ -155,7 +155,7 @@ controller.addv2 = (controllerRequest, controllerResponse) => {
                 [ newName, fileExt, fileKey, fileUrl ],
                 (queryError, queryRows) => {
                   if (queryError)
-                    connection.rollback(() => {
+                    return connection.rollback(() => {
                       controllerResponse.status(500).json(errorResponses.status500(queryError));
                     });
 
@@ -166,13 +166,13 @@ controller.addv2 = (controllerRequest, controllerResponse) => {
                     [ expenseInsertedId, attachmentInsertedId ],
                     (queryError, queryRows) => {
                       if (queryError)
-                        connection.rollback(() => {
+                        return connection.rollback(() => {
                           controllerResponse.status(500).json(errorResponses.status500(queryError));
                         });
 
                       connection.commit((commitError) => {
                         if (commitError)
-                          connection.rollback(() => {
+                          return connection.rollback(() => {
                             controllerResponse.status(500).json(errorResponses.status500(queryError));
                           });
     
@@ -183,14 +183,14 @@ controller.addv2 = (controllerRequest, controllerResponse) => {
                 }
               );
             }).catch((uploadError) => {
-              connection.rollback(() => {
+              return connection.rollback(() => {
                 controllerResponse.status(500).json(errorResponses.status500(uploadError));
               });
             });
           } else {
             connection.commit((commitError) => {
               if (commitError) {
-                connection.rollback(() => {
+                return connection.rollback(() => {
                   controllerResponse.status(500).json(errorResponses.status500(commitError));
                 });
               }

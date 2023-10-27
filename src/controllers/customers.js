@@ -257,7 +257,7 @@ controller.addv2 = (controllerRequest, controllerResponse) => {
         ],
         (queryError, queryRows) => {
           if (queryError)
-            connection.rollback(() => controllerResponse.status(500).json(errorResponses.status500(queryError)));
+            return connection.rollback(() => controllerResponse.status(500).json(errorResponses.status500(queryError)));
 
           const customerInsertId = queryRows[0].insertId;
           const customerInsertCode = queryRows[1][0].insertCode;
@@ -275,7 +275,7 @@ controller.addv2 = (controllerRequest, controllerResponse) => {
               [ customerPhonesToInsert ],
               (queryError, queryRows) => {
                 if (queryError)
-                  connection.rollback(() => controllerResponse.status(500).json(errorResponses.status500(queryError)));
+                  return connection.rollback(() => controllerResponse.status(500).json(errorResponses.status500(queryError)));
   
                 if (customerRelatives.length > 0 && customerRelatives !== null) {
                   const customerRelativesToInsert = customerRelatives.map(
@@ -287,11 +287,11 @@ controller.addv2 = (controllerRequest, controllerResponse) => {
                     [ customerRelativesToInsert ],
                     (queryError, queryRows) => {
                       if (queryError)
-                        connection.rollback(() => controllerResponse.status(500).json(errorResponses.status500(queryError)));
+                        return connection.rollback(() => controllerResponse.status(500).json(errorResponses.status500(queryError)));
         
                       connection.commit((commitError) => {
                         if (commitError)
-                          connection.rollback(() => {
+                          return connection.rollback(() => {
                             controllerResponse.status(500).json(errorResponses.status500(queryError));
                           });
         
@@ -302,7 +302,7 @@ controller.addv2 = (controllerRequest, controllerResponse) => {
                 } else {
                   connection.commit((commitError) => {
                     if (commitError)
-                      connection.rollback(() => {
+                      return connection.rollback(() => {
                         controllerResponse.status(500).json(errorResponses.status500(queryError));
                       });
     
@@ -322,11 +322,11 @@ controller.addv2 = (controllerRequest, controllerResponse) => {
                 [ customerRelativesToInsert ],
                 (queryError, queryRows) => {
                   if (queryError)
-                    connection.rollback(() => controllerResponse.status(500).json(errorResponses.status500(queryError)));
+                    return connection.rollback(() => controllerResponse.status(500).json(errorResponses.status500(queryError)));
     
                   connection.commit((commitError) => {
                     if (commitError)
-                      connection.rollback(() => {
+                      return connection.rollback(() => {
                         controllerResponse.status(500).json(errorResponses.status500(queryError));
                       });
     
@@ -337,7 +337,7 @@ controller.addv2 = (controllerRequest, controllerResponse) => {
             } else {
               connection.commit((commitError) => {
                 if (commitError)
-                  connection.rollback(() => {
+                  return connection.rollback(() => {
                     controllerResponse.status(500).json(errorResponses.status500(queryError));
                   });
 

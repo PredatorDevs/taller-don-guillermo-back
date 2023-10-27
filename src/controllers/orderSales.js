@@ -199,14 +199,14 @@ controller.bulkInsertAfterNormalInsert = (req, res) => {
                   [ fkAddedData ],
                   (err, results, fields) => {
                     if (err) {
-                      connection.rollback((rollbackError) => {
+                      return connection.rollback((rollbackError) => {
                         res.status(400).json(errorResponses.status400([err, rollbackError]));
                       });
                     }
                     else {
                       connection.commit(function(err) {
                         if (err) {
-                          connection.rollback(function() {
+                          return connection.rollback(function() {
                             res.status(400).json(errorResponses.status400(err));
                           });
                         }
