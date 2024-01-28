@@ -12,7 +12,17 @@ const {
   getPdf,
   getLocationProductsByCategory,
   getLocationProductsByBrand,
-  getLocationProductsByFilteredData
+  getLocationProductsByFilteredData,
+  shiftcutSettlement,
+  getMainDashboardData,
+  getCashierLocationSalesByMonth,
+  getMonthlyFinalConsumerSaleBook,
+  getMonthlyTaxPayerSaleBook,
+  getMonthlyFinalConsumerSaleBookPDF,
+  getMonthlyTaxPayerSaleBookPDF,
+  getMonthlyPurchasesBook,
+  getMonthlyPurchaseBookPDF,
+  getTransferSheet
 } = controller;
 
 const { checkToken, checkUserIsActive } = middleware;
@@ -23,6 +33,16 @@ router.post('/create-pdf-alt', createNewPdfAlt);
 router.get('/get-pdf', getPdf);
 router.get('/get-product-by-cat/:locationId', getLocationProductsByCategory);
 router.get('/get-product-by-brand/:locationId', getLocationProductsByBrand);
+router.get('/shiftcut-settlement/:shiftcutId', shiftcutSettlement);
+router.get('/main-dashboard/:startDate/:endDate', getMainDashboardData);
+router.get('/cashier-location-sales-by-month/:locationId/:cashierId/:documentTypeId/:month', getCashierLocationSalesByMonth);
+router.get('/location-final-consumer-sale-book/:locationId/:month', getMonthlyFinalConsumerSaleBook);
+router.get('/location-tax-payer-sale-book/:locationId/:month', getMonthlyTaxPayerSaleBook);
+router.get('/location-final-consumer-sale-book-pdf/:locationId/:month', getMonthlyFinalConsumerSaleBookPDF);
+router.get('/location-tax-payer-sale-book-pdf/:locationId/:month', getMonthlyTaxPayerSaleBookPDF);
+router.get('/location-purchase-book/:locationId/:month', getMonthlyPurchasesBook);
+router.get('/location-purchase-book-pdf/:locationId/:month', getMonthlyPurchaseBookPDF);
+router.get('/transfer-sheet/:transferId', getTransferSheet);
 
 router.post('/get-product-by-filtered-data', getLocationProductsByFilteredData);
 

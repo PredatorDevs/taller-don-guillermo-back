@@ -4,7 +4,7 @@ const controller = {};
 
 const queries = {
   find: `
-    SELECT * FROM vw_productpurchases;
+    SELECT * FROM vw_productpurchases ORDER BY productPurchaseId DESC;
   `,
   findById: `
     SELECT * FROM vw_productpurchases WHERE productPurchaseId = ?;
@@ -20,11 +20,12 @@ const queries = {
     prmt_total
     prmt_registeredby
   */
+
   findPendings: `SELECT * FROM vw_pendingproductpurchasesuppliers;`,
   findPendingsByLocation: `SELECT * FROM vw_pendingproductpurchasesuppliers WHERE productPurchaseLocationId = ?;`,
   findPendingAmountToPay: `SELECT ROUND((IFNULL(total, 0) - fn_getproductpurchasetotalpaid(id)), 2) AS pendingAmount FROM productpurchases WHERE id = ?;`,
   add: `
-    CALL usp_CreateNewProductPurchase(?, ?, ?, ?, ?, ?, ?, ?, ?);
+    CALL usp_CreateNewProductPurchase(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `,
   voidProductPurchase: `CALL usp_VoidProductPurchase(?, ?);`,
   details: {
@@ -84,8 +85,11 @@ controller.add = (req, res) => {
     prmt_paymentmethod
     prmt_docdatetime
     prmt_docnumber
+    prmt_docorderpurnumber
     prmt_total
-    prmt_registeredby
+    prmt_registeredby,
+    prmt_IVAretention,
+    prmt_IVAperception
   */
   const { idtoauth } = req.headers;
   
@@ -97,7 +101,12 @@ controller.add = (req, res) => {
     paymentMethodId,
     docDatetime,
     docNumber,
-    total
+    docOrderPurchaseNumber,
+    total,
+    IVAretention,
+    IVAperception,
+    expirationDays,
+    userPINCode
   } = req.body;
   
   req.getConnection(
@@ -111,8 +120,13 @@ controller.add = (req, res) => {
         paymentMethodId || 1,
         docDatetime,
         docNumber,
+        docOrderPurchaseNumber,
         total,
-        idtoauth
+        idtoauth,
+        IVAretention || 0,
+        IVAperception || 0,
+        expirationDays || 8,
+        userPINCode
       ],
       res
     )

@@ -7,7 +7,8 @@ const queries = {
   find: `SELECT * FROM vw_products;`,
   findByLocationStockData: `
     SELECT vw_products.*,
-    ROUND((SELECT stock FROM productstocks WHERE productId = vw_products.productId AND locationId = ?), 2) AS currentLocationStock
+    ROUND((SELECT stock FROM productstocks WHERE productId = vw_products.productId AND locationId = ?), 2) AS currentLocationStock,
+    ROUND((SELECT minStockAlert FROM productstocks WHERE productId = vw_products.productId AND locationId = ?), 2) AS currentLocationMinStockAlert
     FROM vw_products;
   `,
   findTaxesByProductId: `SELECT taxesData FROM vw_products WHERE productId = ?`,
@@ -34,11 +35,39 @@ const queries = {
       );
   `,
   findLocationStockCheck: `
-    SELECT productStockId, productName, ROUND(stock, 2) AS stock FROM vw_productstocks
-    WHERE locationId = ?
-    AND (SELECT isActive FROM products WHERE id = productId) = 1
-    -- AND (SELECT isService FROM products WHERE id = productId) = 0
-    ORDER BY productName;
+    SELECT
+      vw_ps.productStockId,
+      vw_ps.productName,
+      (
+        SELECT propri.price 
+        FROM productprices propri
+        WHERE propri.productId = vw_ps.productId
+        ORDER BY propri.id
+        LIMIT 1
+      ) AS price1,
+      (
+        SELECT propri.price 
+        FROM productprices propri
+        WHERE propri.productId = vw_ps.productId
+        ORDER BY propri.id
+        LIMIT 1, 1
+      ) AS price2,
+      (
+        SELECT propri.price 
+        FROM productprices propri
+        WHERE propri.productId = vw_ps.productId
+        ORDER BY propri.id
+        LIMIT 2, 1
+      ) AS price3,
+      ROUND(vw_ps.stock, 2) AS stock,
+      ROUND(vw_ps.minStockAlert, 2) AS minStockAlert
+    FROM
+      vw_productstocks vw_ps
+    WHERE
+      vw_ps.locationId = ?
+      AND (SELECT prd.isActive FROM products prd WHERE prd.id = vw_ps.productId) = 1
+    ORDER BY
+      vw_ps.productName;
   `,
   add: `
     INSERT INTO products (
@@ -91,7 +120,7 @@ const queries = {
     UPDATE productprices SET isActive = 0 WHERE productId = ?;
   `,
   checkAvailability: `
-    SELECT fn_checkifproductisavailable(?, ?, ?) AS isAvailable;
+    SELECT fn_checkifproductisavailable(?, ?, ?) AS isAvailable, fn_getproductcurrentstock(?, ?) AS currentStock;
   `,
   stocks: {
     findByProductId: `
@@ -107,7 +136,8 @@ const queries = {
         productstocks
       SET
         initialStock = ?,
-        stock = ?
+        stock = ?,
+        minStockAlert = ?
       WHERE
         id = ?;
     `
@@ -168,7 +198,7 @@ controller.findTaxesByProductId = (req, res) => {
 
 controller.findByLocationStockData = (req, res) => {
   const { locationId } = req.params;
-  req.getConnection(connUtil.connFunc(queries.findByLocationStockData, [ locationId || 0 ], res));
+  req.getConnection(connUtil.connFunc(queries.findByLocationStockData, [ locationId || 0, locationId || 0 ], res));
 }
 
 controller.findByMultipleParams = (req, res) => {
@@ -262,7 +292,7 @@ controller.remove = (req, res) => {
 
 controller.checkAvailability = (req, res) => {
   const { locationId, productId, quantity } = req.params;
-  req.getConnection(connUtil.connFunc(queries.checkAvailability, [ locationId || 0, productId || 0, quantity || 0 ], res));
+  req.getConnection(connUtil.connFunc(queries.checkAvailability, [ locationId || 0, productId || 0, quantity || 0, locationId || 0, productId || 0 ], res));
 }
 
 // PRODUCT LOCATION STOCKS
@@ -275,8 +305,9 @@ controller.stocks.findByProductId = (req, res) => {
 }
 
 controller.stocks.updateById = (req, res) => {
-  const { initialStock, stock, productStockId } = req.body;
-  req.getConnection(connUtil.connFunc(queries.stocks.updateById, [ initialStock || 0, stock || 0, productStockId || 0 ], res));
+  const { initialStock, stock, minStockAlert, productStockId } = req.body;
+  console.log(req.body);
+  req.getConnection(connUtil.connFunc(queries.stocks.updateById, [ initialStock || 0, stock || 0, minStockAlert || 1, productStockId || 0 ], res));
 }
 
 // PRODUCT PRICES

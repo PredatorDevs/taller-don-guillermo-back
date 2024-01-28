@@ -53,12 +53,12 @@ const queries = {
   `,
   add: `
     INSERT INTO users 
-      (fullName, username, \`password\`, roleId, locationId, cashierId, isAdmin, canCloseCashier)
+      (fullName, username, \`password\`, PINCode, roleId, locationId, cashierId, isAdmin, canCloseCashier)
     VALUES 
-      (?, ?, SHA2(?, 512), ?, ?, ?, ?, ?);  
+      (?, ?, SHA2(?, 512), ?, ?, ?, ?, ?, ?);  
   `,
   update: `
-    UPDATE 
+    UPDATE
       users
     SET
       fullName = IFNULL(?, fullName),
@@ -95,13 +95,14 @@ controller.add = (req, res) => {
     fullName,
     username,
     password,
+    PINCode,
     roleId,
     locationId,
     cashierId,
     isAdmin,
     canCloseCashier
   } = req.body;
-  req.getConnection(connUtil.connFunc(queries.add, [ fullName, username, password, roleId, locationId, cashierId, isAdmin, canCloseCashier ], res));
+  req.getConnection(connUtil.connFunc(queries.add, [ fullName, username, password, PINCode, roleId, locationId, cashierId, isAdmin, canCloseCashier ], res));
 }
 
 controller.update = (req, res) => {

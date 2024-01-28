@@ -6,7 +6,8 @@ const controller = {};
 
 const queries = {
   authLogin: `CALL usp_AuthUser(?, ?);`,
-  authUserPassword: `CALL usp_AuthUserPassword(?);`
+  authUserPassword: `CALL usp_AuthUserPassword(?);`,
+  authUserPINCode: `CALL usp_AuthUserPINCode(?);`
 };
 
 controller.authLogin = (req, res) => {
@@ -36,6 +37,12 @@ controller.authLogin = (req, res) => {
 controller.authUserPassword = (req, res) => {
   const { password } = req.body;
   req.getConnection(connUtil.connSPFunc(queries.authUserPassword, [password], res));
+}
+
+controller.authUserPINCode = (req, res) => {
+  const { PINCode } = req.body;
+  console.log(PINCode);
+  req.getConnection(connUtil.connSPFunc(queries.authUserPINCode, [ PINCode ], res));
 }
 
 controller.successVerification = (req, res) => {

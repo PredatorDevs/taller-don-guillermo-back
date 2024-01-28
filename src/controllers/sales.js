@@ -19,10 +19,10 @@ const queries = {
     ORDER BY id DESC;
   `,
   findPendings: `SELECT * FROM vw_pendingsalecustomers;`,
-  findPendingsByLocation: `SELECT * FROM vw_pendingsalecustomers WHERE customerLocationId = ?;`,
+  findPendingsByLocation: `SELECT * FROM vw_pendingsalecustomers WHERE customerLocationId = ? OR customerLocationId IS NULL;`,
   findPendingAmountToPay: `SELECT (IFNULL(total, 0) - fn_getsaletotalpaid(id)) AS pendingAmount FROM sales WHERE id = ?;`,
   add: `
-    CALL usp_CreateNewSale(?, ?, ?, ?, ?, ?, ?, ?, ?);
+    CALL usp_CreateNewSale(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `,
   update: `
     UPDATE sales
@@ -66,7 +66,10 @@ const queries = {
   },
   payments: {
     add: `
-      CALL usp_CreateNewSalePayment (?, ?, ?, UTC_TIMESTAMP(), ?, ?);
+      CALL usp_CreateNewSalePayment (?, ?, ?, UTC_TIMESTAMP(), ?, ?, ?, ?, ?, ?);
+    `,
+    addGeneral: `
+      CALL usp_NewGeneralPayment(?, ?, ?, ?, ?, UTC_TIMESTAMP(), ?, ?, ?, ?);    
     `
   }
 }
@@ -107,8 +110,50 @@ controller.findPendingAmountToPay = (req, res) => {
 
 controller.add = (req, res) => {
   const { idtoauth } = req.headers;
-  const { locationId, customerId, documentTypeId, paymentTypeId, docDatetime, docNumber, total, cashierId } = req.body;
-  req.getConnection(connUtil.connSPFunc(queries.add, [ locationId || 1, customerId, documentTypeId, paymentTypeId, docDatetime, docNumber, total, cashierId, idtoauth ], res));
+  const {
+    locationId,
+    customerId,
+    documentTypeId,
+    paymentTypeId,
+    paymentMethodId,
+    docDatetime,
+    docNumber,
+    total,
+    cashierId,
+    IVAretention,
+    IVAperception,
+    expirationDays,
+    bankId,
+    referenceNumber,
+    accountNumber,
+    userPINCode
+  } = req.body;
+
+  req.getConnection(
+    connUtil.connSPFunc(
+      queries.add,
+      [
+        locationId || 1,
+        customerId,
+        documentTypeId,
+        paymentTypeId,
+        paymentMethodId || 1,
+        docDatetime,
+        docNumber,
+        total,
+        cashierId,
+        idtoauth,
+        IVAretention || 0,
+        IVAperception || 0,
+        expirationDays || null,
+        bankId || null,
+        referenceNumber || '',
+        accountNumber || '',
+        userPINCode
+      ],
+      res
+    )
+  );
 }
 
 controller.validateDocNumber = (req, res) => {
@@ -161,9 +206,66 @@ controller.payments = {};
 
 controller.payments.add = (req, res) => {
   const { idtoauth } = req.headers;
-  const { locationId, cashierId, saleId, paymentAmount } = req.body;
-  console.log(req.body);
-  req.getConnection(connUtil.connFunc(queries.payments.add, [ locationId, cashierId, idtoauth, saleId , paymentAmount ], res));
+  const {
+    locationId,
+    cashierId,
+    saleId,
+    paymentAmount,
+    paymentMethodId,
+    bankId,
+    referenceNumber,
+    accountNumber
+  } = req.body;
+
+  req.getConnection(
+    connUtil.connFunc(
+      queries.payments.add,
+      [
+        locationId,
+        cashierId,
+        idtoauth,
+        saleId ,
+        paymentAmount,
+        paymentMethodId,
+        bankId || null,
+        referenceNumber || '',
+        accountNumber || ''
+      ],
+      res
+    )
+  );
+}
+
+controller.payments.addGeneral = (req, res) => {
+  const { idtoauth } = req.headers;
+  const {
+    customerId,
+    paymentAmount,
+    locationId,
+    cashierId,
+    paymentMethodId,
+    bankId,
+    referenceNumber,
+    accountNumber
+  } = req.body;
+
+  req.getConnection(
+    connUtil.connFunc(
+      queries.payments.addGeneral,
+      [
+        customerId,
+        paymentAmount,
+        locationId,
+        cashierId,
+        idtoauth,
+        paymentMethodId,
+        bankId,
+        referenceNumber,
+        accountNumber
+      ],
+      res
+    )
+  );
 }
 
 export default controller;

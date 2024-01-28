@@ -43,5 +43,6 @@ router.delete('/details/:saleDetailId', checkToken, checkUserIsActive, details.r
 // SALES PAYMENTS
 
 router.post('/payments/new-single-payment', checkToken, checkUserIsActive, payments.add);
+router.post('/payments/new-general-payment', checkToken, checkUserIsActive, payments.addGeneral);
 
 export default router;

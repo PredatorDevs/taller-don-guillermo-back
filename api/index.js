@@ -1,4 +1,6 @@
 import express, { json, urlencoded, static as staticserve } from 'express';
+import { createServer } from 'node:http';
+import cron from 'node-cron';
 
 import path from 'path';
 import morgan from 'morgan';
@@ -8,6 +10,11 @@ import cors from 'cors';
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import fileUpload from 'express-fileupload';
+
+import dayjs from 'dayjs';
+import locale from 'dayjs/locale/es-mx.js';
+
+dayjs.locale(locale);
 
 import { config } from 'dotenv';
 import { join } from 'path';
@@ -44,8 +51,11 @@ import salesRoutes from '../src/routes/sales.js';
 import sellersRoutes from '../src/routes/sellers.js';
 import shiftcutsRoutes from '../src/routes/shiftcuts.js';
 import suppliersRoutes from '../src/routes/suppliers.js';
+import transfersRoutes from '../src/routes/transfers.js';
 import ubicationsRoutes from '../src/routes/ubications.js';
 import usersRoutes from '../src/routes/users.js';
+
+// const app = express();
 
 const server = express();
 
@@ -140,6 +150,7 @@ server.use('/api/sales', salesRoutes);
 server.use('/api/sellers', sellersRoutes);
 server.use('/api/shiftcuts', shiftcutsRoutes);
 server.use('/api/suppliers', suppliersRoutes);
+server.use('/api/transfers', transfersRoutes);
 server.use('/api/ubications', ubicationsRoutes);
 server.use('/api/users', usersRoutes);
 
@@ -156,6 +167,10 @@ server.get('/', (req, res) => {
 server.get('*', (req, res) => {
   res.redirect('/');
 });
+
+// cron.schedule('0 17 * * 0', function() {
+//   console.log('Process running every minute');
+// });
 
 const serverInstance = server.listen(server.get('port'), () => {
   console.log('\u001b[1;36mServer on port: ' + address() + ':' + server.get('port'));

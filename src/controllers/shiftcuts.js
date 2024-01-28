@@ -15,14 +15,15 @@ const queries = {
   `,
   settlementsByLocation: `
     SELECT 
-      shiftcutId, shiftcutNumber, openedAt, closedAt, 
-      initialAmount, finalAmount, remittedAmount, shiftcutDatetime 
+      cashierName, shiftcutId, shiftcutNumber, openedAt, closedAt, 
+      initialAmount, finalAmount, remittedAmount, shiftcutDatetime,
+      locationName
     FROM 
       vw_shitfcuts
     WHERE 
       locationId = ?
       AND shiftcutStatus = 2
-    ORDER BY 
+    ORDER BY
       shiftcutId DESC;
   `,
   settlementsOrderSaleById: `

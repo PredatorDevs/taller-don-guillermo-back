@@ -14,6 +14,11 @@ router.post('/', checkToken, checkUserIsActive, add);
 
 router.put('/', checkToken, checkUserIsActive, update);
 
-router.delete('/:userId', checkToken, checkUserIsActive, remove);
+router.delete(
+  '/:userId',
+  checkToken,
+  checkUserIsActive,
+  remove
+);
 
 export default router;

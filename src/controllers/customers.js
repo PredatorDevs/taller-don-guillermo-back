@@ -6,43 +6,13 @@ const controller = {};
 const queries = {
   find: `
     SELECT
-      id,
-      code,
-      fullName,
-      address,
-      dui,
-      nit,
-      nrc,
-      email,
-      customerTypeId,
-      customerTypeName,
-      applyForCredit,
-      creditLimit,
-      defPriceIndex
+      *
     FROM
       vw_customers;
   `,
   findById: `
     SELECT
-      id,
-      code,
-      fullName,
-      birthdate,
-      customerTypeId,
-      customerTypeName,
-      dui,
-      nit,
-      nrc,
-      businessLine,
-      occupation,
-      address,
-      departmentId,
-      cityId,
-      deliveryRouteId,
-      email,
-      applyForCredit,
-      creditLimit,
-      defPriceIndex
+      *
     FROM
       vw_customers
     WHERE
@@ -52,7 +22,13 @@ const queries = {
 
     SELECT * FROM customerrelatives WHERE customerId = ? AND isActive = 1;
   `,
-  findByLocation: `SELECT * FROM vw_customers WHERE locationId = ? OR locationId IS NULL;`,
+  findByLocation: `
+    SELECT c.*,
+    IFNULL((SELECT SUM(salePendingAmount) FROM vw_customerpendingsales vc WHERE vc.customerId = c.id), 0) AS pendingToPay
+    FROM vw_customers c
+    WHERE c.locationId = ?
+    OR c.locationId IS NULL;
+  `,
   findTypes: `
     SELECT
       id,
@@ -62,6 +38,9 @@ const queries = {
   `,
   findPendingSales: `
     SELECT * FROM vw_customerpendingsales WHERE customerId = ?;
+  `,
+  findTotalPendingAmountToPay: `
+    SELECT IFNULL((SELECT SUM(salePendingAmount) FROM vw_customerpendingsales vc WHERE vc.customerId = ?), 0) AS totalPendingAmountToPay;
   `,
   add: `
     INSERT INTO customers (customerTypeId, locationId, fullName, address, phone, email, dui, nit, nrc)
@@ -76,6 +55,7 @@ const queries = {
       cityId,
       deliveryRouteId,
       fullName,
+      businessName,
       address,
       phone,
       email,
@@ -108,6 +88,7 @@ const queries = {
       ?,
       ?,
       ?,
+      ?,
       ?
     );
 
@@ -118,10 +99,12 @@ const queries = {
       customers
     SET
       customerTypeId = IFNULL(?, fullName),
+      locationId = IFNULL(?, locationId),
       departmentId = IFNULL(?, departmentId),
       cityId = IFNULL(?, cityId),
       deliveryRouteId = IFNULL(?, deliveryRouteId),
       fullName = IFNULL(?, fullName),
+      businessName = IFNULL(?, businessName),
       address = IFNULL(?, address),
       phone = IFNULL(?, phone),
       email = IFNULL(?, email),
@@ -197,6 +180,11 @@ controller.findPendingSales = (req, res) => {
   req.getConnection(connUtil.connFunc(queries.findPendingSales, [ customerId ], res));
 }
 
+controller.findTotalPendingAmountToPay = (req, res) => {
+  const { customerId } = req.params;
+  req.getConnection(connUtil.connFunc(queries.findTotalPendingAmountToPay, [ customerId ], res));
+}
+
 controller.add = (req, res) => {
   const { customerTypeId, locationId, fullName, address, phone, email, dui, nit, nrc } = req.body;
   req.getConnection(connUtil.connFunc(queries.add, [ customerTypeId, locationId || 1, fullName, address, phone, email, dui, nit, nrc ], res));
@@ -219,6 +207,7 @@ controller.addv2 = (controllerRequest, controllerResponse) => {
         cityId,
         deliveryRouteId,
         fullName,
+        businessName,
         address,
         phone,
         email,
@@ -242,6 +231,7 @@ controller.addv2 = (controllerRequest, controllerResponse) => {
           cityId,
           deliveryRouteId || null,
           fullName,
+          businessName || null,
           address,
           phone,
           email,
@@ -354,10 +344,12 @@ controller.addv2 = (controllerRequest, controllerResponse) => {
 controller.update = (req, res) => {
   const {
     customerTypeId,
+    locationId,
     departmentId,
     cityId,
     deliveryRouteId,
     fullName,
+    businessName,
     address,
     phone,
     email,
@@ -377,10 +369,12 @@ controller.update = (req, res) => {
     connUtil.connFunc(
       queries.update, [
         customerTypeId || null,
+        locationId || null,
         departmentId || null,
         cityId || null,
         deliveryRouteId || null,
         fullName || null,
+        businessName || null,
         address || null,
         phone || null,
         email || null,

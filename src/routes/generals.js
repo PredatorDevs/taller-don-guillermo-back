@@ -4,7 +4,8 @@ const router = Router();
 import controller from '../controllers/generals.js';
 import middleware from '../middlewares/middleware.js';
 
-const { 
+const {
+  findBanks,
   findDocumentTypes, 
   findPaymentTypes, 
   findPaymentMethods,
@@ -17,6 +18,7 @@ const {
 
 const { checkToken, checkUserIsActive } = middleware;
 
+router.get('/banks', checkToken, checkUserIsActive, findBanks);
 router.get('/document-types', checkToken, checkUserIsActive, findDocumentTypes);
 router.get('/payment-types', checkToken, checkUserIsActive, findPaymentTypes);
 router.get('/payment-methods', checkToken, checkUserIsActive, findPaymentMethods);
